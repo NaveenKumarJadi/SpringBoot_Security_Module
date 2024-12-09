@@ -17,6 +17,9 @@ import com.naveen.entity.Customer;
 import com.naveen.repo.CustomerRepo;
 import com.naveen.service.JwtService;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @RestController
 @RequestMapping("/api")
 public class CustomerRestController {
@@ -41,6 +44,7 @@ public class CustomerRestController {
 	@PostMapping("/login")
 	public ResponseEntity<String> loginCheck(@RequestBody Customer c) {
 		
+		log.info("Entering into loginCheck() method : ");
 		UsernamePasswordAuthenticationToken token = 
 				new UsernamePasswordAuthenticationToken(c.getUname(), c.getPwd());
 
@@ -49,11 +53,13 @@ public class CustomerRestController {
 
 			if (authenticate.isAuthenticated()) {
 				String jwtToken = jwt.generateToken(c.getUname());
+				log.info("Exiting loginCheck() method : ");
 				return new ResponseEntity<>(jwtToken, HttpStatus.OK);
 			}
 
 		} catch (Exception e) {
 			//logger
+			log.info("Exiting  loginCheck() method : ");
 		}
 
 		return new ResponseEntity<String>("Invalid Credentials", HttpStatus.BAD_REQUEST);
@@ -63,12 +69,14 @@ public class CustomerRestController {
 	public String registerCustomer(@RequestBody Customer customer) {
 		
 		// duplicate check
+		log.info("Entering into registerCustomer() method : ");
 
 		String encodedPwd = pwdEncoder.encode(customer.getPwd());
 		customer.setPwd(encodedPwd);
 
 		crepo.save(customer);
 
+		log.info("Exiting registerCustomer() method : ");
 		return "User registered";
 	}
 
