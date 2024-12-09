@@ -30,6 +30,7 @@ Request Data:
     "pwd": "ram@123"
 }
 
+will get a response as JWT Token
 -------------------------------------------------------
 
 GET: http://localhost:9090/api/welcome
