@@ -14,6 +14,9 @@ import org.springframework.web.bind.annotation.RestController;
 import com.naveen.entity.Customer;
 import com.naveen.repository.CustomerRepository;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @RestController
 public class CustomerRestController {
 
@@ -29,6 +32,7 @@ public class CustomerRestController {
 	@PostMapping("/login")
 	public ResponseEntity<String> loginCheck(@RequestBody Customer c) {
 
+		log.info("Entering into loginCheck method() : ");
 		UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(c.getEmail(), c.getPwd());
 		try {
 			Authentication authenticate = authManager.authenticate(token);
@@ -39,14 +43,18 @@ public class CustomerRestController {
 			// logger
 			e.printStackTrace();
 		}
+		log.info("Exiting loginCheck method() : ");
 		return new ResponseEntity<String>("Invalid Credentials", HttpStatus.UNAUTHORIZED);
 	}
 
 	@PostMapping("/register")
 	public ResponseEntity<String> registration(@RequestBody Customer c) {
+		
+		log.info("Entering into registration method() : ");
 		String encodedPwd = pwdEncoder.encode(c.getPwd());
 		c.setPwd(encodedPwd);
 		repo.save(c);
+		log.info("Exiting registration method() : ");
 		return new ResponseEntity<String>("User Registered", HttpStatus.CREATED);
 	}
 
