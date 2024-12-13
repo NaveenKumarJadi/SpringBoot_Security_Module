@@ -17,6 +17,11 @@ import com.naveen.service.UserInfoService;
 
 import java.io.IOException;
 
+/*
+ The JwtAuthFilter class is a Spring Security filter designed to process every incoming HTTP request, validate the JWT token, 
+ and set the authentication context for the request. 
+ It extends OncePerRequestFilter, ensuring that the filter is executed only once per request. Here's a detailed explanation:
+ */
 @Component
 public class JwtAuthFilter extends OncePerRequestFilter {
 
@@ -26,6 +31,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     @Autowired
     private UserInfoService userDetailsService;
 
+    // The core logic of the filter is implemented here. It is invoked for every HTTP request.
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         // Retrieve the Authorization header
@@ -35,8 +41,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
         // Check if the header starts with "Bearer "
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            token = authHeader.substring(7); // Extract token
-            username = jwtService.extractUsername(token); // Extract username from token
+            token = authHeader.substring(7); // Extract the token by removing "Bearer "
+            username = jwtService.extractUsername(token); // Extract username from the token
         }
 
         // If the token is valid and no authentication is set in the context
@@ -51,6 +57,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                     userDetails.getAuthorities()
                 );
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+//                var authToken = jwtService.getAuthenticationToken(userDetails, request);
                 SecurityContextHolder.getContext().setAuthentication(authToken);
             }
         }
@@ -58,4 +65,5 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         // Continue the filter chain
         filterChain.doFilter(request, response);
     }
+   
 }

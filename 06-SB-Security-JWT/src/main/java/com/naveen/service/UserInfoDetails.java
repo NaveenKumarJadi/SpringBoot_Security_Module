@@ -10,6 +10,11 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import com.naveen.entity.UserInfo;
 
+/*
+ The UserInfoDetails class is a custom implementation of the UserDetails interface from Spring Security. 
+ It provides Spring Security with the necessary user information for authentication and authorization.
+ UserDetails is the standard interface used by Spring Security to retrieve user information during authentication
+ */
 public class UserInfoDetails implements UserDetails {
 
     private String username; // Changed from 'name' to 'username' for clarity
@@ -25,11 +30,13 @@ public class UserInfoDetails implements UserDetails {
                 .collect(Collectors.toList());
     }
 
+    /* Converts the user's roles or permissions into a collection of GrantedAuthority objects required by Spring Security. */
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return authorities;
     }
 
+    /* Return the user's password and username, respectively, from the UserInfo entity. */
     @Override
     public String getPassword() {
         return password;
@@ -40,6 +47,7 @@ public class UserInfoDetails implements UserDetails {
         return username;
     }
 
+    /* These return true to indicate the account's active status (can be modified based on application requirements). */
     @Override
     public boolean isAccountNonExpired() {
         return true; // Implement your logic if you need this

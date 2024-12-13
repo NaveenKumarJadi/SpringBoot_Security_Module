@@ -14,6 +14,14 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
+/*
+JWT is a compact, URL-safe token format used to represent claims securely between parties. It consists of three parts:
+
+Header: Contains metadata about the token (e.g., algorithm type).
+Payload: Contains claims (user data).
+Signature: Ensures the token hasn't been tampered with.
+*/
+
 @Component
 public class JwtService {
 
@@ -30,13 +38,14 @@ public class JwtService {
     private String createToken(Map<String, Object> claims, String userName) {
         return Jwts.builder()
                 .setClaims(claims)
-                .setSubject(userName)
-                .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 30)) // Token valid for 30 minutes
-                .signWith(getSignKey(), SignatureAlgorithm.HS256)
-                .compact();
+                .setSubject(userName) // The sub (subject) claim stores the username.
+                .setIssuedAt(new Date()) // Records the token's creation time.
+                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 30)) // Sets the token’s expiration time (current time + 30 minutes).
+                .signWith(getSignKey(), SignatureAlgorithm.HS256) //  Signs the token using the HS256 algorithm and a secret key.
+                .compact(); // Converts the JWT object into a compact, URL-safe string.
     }
-
+    // SignatureAlgorithm.HS256: is a symmetric algorithm where the same key is used for both signing and verification.
+    
     // Get the signing key for JWT token
     private Key getSignKey() {
         byte[] keyBytes = Decoders.BASE64.decode(SECRET);
@@ -53,26 +62,27 @@ public class JwtService {
         return extractClaim(token, Claims::getExpiration);
     }
 
-    // Extract a claim from the token
+    // A generic method to extract any claim from the token.
     public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
         final Claims claims = extractAllClaims(token);
-        return claimsResolver.apply(claims);
+        return claimsResolver.apply(claims); // Uses a function to extract the specific claim.
     }
 
     // Extract all claims from the token
     private Claims extractAllClaims(String token) {
         return Jwts.parserBuilder()
-                .setSigningKey(getSignKey())
+                .setSigningKey(getSignKey()) // Verifies the token’s signature with the secret key.
                 .build()
-                .parseClaimsJws(token)
-                .getBody();
+                .parseClaimsJws(token) // Parses the token and validates the signature.
+                .getBody(); // Extracts the payload (claims)
     }
-
-    // Check if the token is expired
+    // Checks if the token is expired by comparing the expiration date with the current date.
     private Boolean isTokenExpired(String token) {
         return extractExpiration(token).before(new Date());
     }
 
+    
+    // Validates the token by: Checking if the token’s username matches the provided username. Ensuring the token hasn’t expired.
     // Validate the token against user details and expiration
     public Boolean validateToken(String token, UserDetails userDetails) {
         final String username = extractUsername(token);

@@ -26,7 +26,7 @@ import com.naveen.service.UserInfoService;
 public class SecurityConfig {
 
     @Autowired
-    private JwtAuthFilter authFilter;
+    private JwtAuthFilter jwtAuthFilter;
 
     @Bean
     public UserDetailsService userDetailsService() {
@@ -36,7 +36,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            .csrf(csrf -> csrf.disable()) // Disable CSRF for stateless APIs
+            .csrf(csrf -> csrf.disable()) // CSRF is disabled for stateless APIs since there is no session.
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/auth/welcome", "/auth/addNewUser", "/auth/generateToken").permitAll()
                 .requestMatchers("/auth/user/**").hasAuthority("ROLE_USER")
@@ -44,19 +44,20 @@ public class SecurityConfig {
                 .anyRequest().authenticated() // Protect all other endpoints
             )
             .sessionManagement(sess -> sess
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS) // No sessions
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS) // Configures stateless session management using SessionCreationPolicy.STATELESS.
             )
             .authenticationProvider(authenticationProvider()) // Custom authentication provider
-            .addFilterBefore(authFilter, UsernamePasswordAuthenticationFilter.class); // Add JWT filter
+            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class); // Add JWT filter
 
         return http.build();
     }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder(); // Password encoding
+        return new BCryptPasswordEncoder(); // BCryptPasswordEncoder for hashing passwords securely.
     }
 
+    // Delegates user data loading to UserDetailsService. Uses BCryptPasswordEncoder to validate passwords.
     @Bean
     public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider authenticationProvider = new DaoAuthenticationProvider();
@@ -65,8 +66,10 @@ public class SecurityConfig {
         return authenticationProvider;
     }
 
+    // Retrieves the AuthenticationManager from AuthenticationConfiguration, which handles the authentication process.
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
+
 }
