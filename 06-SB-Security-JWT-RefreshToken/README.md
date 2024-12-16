@@ -18,6 +18,9 @@ Database:
 
 	select * from refreshtoken;
 
+	drop table refreshtoken;
+	
+	drop table userinfo;
 
 
 POST: http://localhost:9097/products/signUp

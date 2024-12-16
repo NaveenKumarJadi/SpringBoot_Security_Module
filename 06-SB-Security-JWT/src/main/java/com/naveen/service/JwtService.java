@@ -40,7 +40,7 @@ public class JwtService {
                 .setClaims(claims)
                 .setSubject(userName) // The sub (subject) claim stores the username.
                 .setIssuedAt(new Date()) // Records the token's creation time.
-                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 30)) // Sets the token’s expiration time (current time + 30 minutes).
+                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 1)) // Sets the token’s expiration time (current time + 30 minutes).
                 .signWith(getSignKey(), SignatureAlgorithm.HS256) //  Signs the token using the HS256 algorithm and a secret key.
                 .compact(); // Converts the JWT object into a compact, URL-safe string.
     }
@@ -76,6 +76,7 @@ public class JwtService {
                 .parseClaimsJws(token) // Parses the token and validates the signature.
                 .getBody(); // Extracts the payload (claims)
     }
+    
     // Checks if the token is expired by comparing the expiration date with the current date.
     private Boolean isTokenExpired(String token) {
         return extractExpiration(token).before(new Date());

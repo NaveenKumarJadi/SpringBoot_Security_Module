@@ -28,59 +28,80 @@ import com.naveen.filter.JwtAuthFilter;
 public class SecurityConfig {
 	
 //	  Because of Exception we are doing changes
-//    @Autowired
-//    private JwtAuthFilter authFilter;
+    @Autowired
+    private JwtAuthFilter authFilter;
 
-	@Autowired
-	@Qualifier("HandlerExceptionResolver")
-	private HandlerExceptionResolver exceptionResolver;
+//	@Autowired
+//	@Qualifier("HandlerExceptionResolver")
+//	public HandlerExceptionResolver exceptionResolver;
 	
+	//Authentication
     @Bean
-    //Authentication
     public UserDetailsService userDetailsService() {
-        return new UserInfoUserDetailsService();
+        return new UserInfoUserDetailsService(); // Ensure UserInfoService implements UserDetailsService
     }
 
-    @Bean
-    private JwtAuthFilter authFilter() {
-    	return new JwtAuthFilter(exceptionResolver);
-    }
+//    @Bean
+//    public JwtAuthFilter authFilter() {
+//    	return new JwtAuthFilter(exceptionResolver);
+//    }
     
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         
     	/*
     	// Depricated
-    	return http.csrf().disable()
+    	return http.csrf().disable() // CSRF is disabled for stateless APIs since there is no session.
                 .authorizeHttpRequests()
                 .requestMatchers("/products/signUp","/products/login","/products/refreshToken").permitAll()
                 .and()
                 .authorizeHttpRequests().requestMatchers("/products/**")
-                .authenticated().and()
+                .authenticated().and()// Protect all other endpoints
                 .sessionManagement()
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS) // Configures stateless session management using SessionCreationPolicy.STATELESS.
                 .and()
-                .authenticationProvider(authenticationProvider())
-                .addFilterBefore(authFilter, UsernamePasswordAuthenticationFilter.class)
+                .authenticationProvider(authenticationProvider()) // Custom authentication provider
+                .addFilterBefore(authFilter, UsernamePasswordAuthenticationFilter.class) // Add JWT filter
                 .build();
         */
         
+    	/*
+    	 http
+            .csrf(csrf -> csrf.disable()) // CSRF is disabled for stateless APIs since there is no session.
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/products/signUp","/products/login","/products/refreshToken").permitAll()
+                .requestMatchers("/products/**").hasAuthority("ROLE_USER")
+                .requestMatchers("/products/all).hasAuthority("ROLE_ADMIN")
+                .anyRequest().authenticated() // Protect all other endpoints
+            )
+            .sessionManagement(sess -> sess
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS) // Configures stateless session management using SessionCreationPolicy.STATELESS.
+            )
+            .authenticationProvider(authenticationProvider()) // Custom authentication provider
+            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class); // Add JWT filter
+
+        return http.build();
+    	 */
+    	
         return http.csrf(AbstractHttpConfigurer::disable)
-                .authorizeHttpRequests(auth->{
-                    auth.requestMatchers("/products/new","/products/authenticate").permitAll()
-                            .requestMatchers("/products/**").authenticated();
+                .authorizeHttpRequests(auth->{ auth
+                	.requestMatchers("/products/signUp","/products/login","/products/refreshToken").permitAll()
+                    .requestMatchers("/products/**").authenticated();
                 })
-                .sessionManagement(session->session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .sessionManagement(session->session
+                		.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )
                 .authenticationProvider(authenticationProvider())
-                .addFilterBefore(authFilter(), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(authFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
+        return new BCryptPasswordEncoder(); // BCryptPasswordEncoder for hashing passwords securely.
     }
 
+    // Delegates user data loading to UserDetailsService. Uses BCryptPasswordEncoder to validate passwords.
     @Bean
     public AuthenticationProvider authenticationProvider(){
         DaoAuthenticationProvider authenticationProvider=new DaoAuthenticationProvider();
@@ -88,6 +109,8 @@ public class SecurityConfig {
         authenticationProvider.setPasswordEncoder(passwordEncoder());
         return authenticationProvider;
     }
+    
+    // Retrieves the AuthenticationManager from AuthenticationConfiguration, which handles the authentication process.
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();

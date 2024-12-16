@@ -19,37 +19,50 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-//@Component
+/*
+The JwtAuthFilter class is a Spring Security filter designed to process every incoming HTTP request, validate the JWT token, 
+and set the authentication context for the request. 
+It extends OncePerRequestFilter, ensuring that the filter is executed only once per request. Here's a detailed explanation:
+*/
+
+@Component
 public class JwtAuthFilter extends OncePerRequestFilter {
-	
-	public JwtAuthFilter(HandlerExceptionResolver exceptionResolver) {
-		this.exceptionResolver = exceptionResolver;
-	}
+
+//	public JwtAuthFilter(HandlerExceptionResolver exceptionResolver) {
+//		this.exceptionResolver = exceptionResolver;
+//	}
+
+//	@Autowired
+//	private HandlerExceptionResolver exceptionResolver;
 
 	@Autowired
-	private HandlerExceptionResolver exceptionResolver;
+	private JwtService jwtService;
 
-    @Autowired
-    private JwtService jwtService;
+	@Autowired
+	private UserInfoUserDetailsService userDetailsService;
 
-    @Autowired
-    private UserInfoUserDetailsService userDetailsService;
+	// The core logic of the filter is implemented here. It is invoked for every HTTP request.
+	@Override
+	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+			throws ServletException, IOException {
 
-    @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-       
-    	String authHeader = request.getHeader("Authorization");
-        String token = null;
-        String username = null;
-        
+		// Retrieve the Authorization header
+		String authHeader = request.getHeader("Authorization");
+		String token = null;
+		String username = null;
+
 		try {
+			// Check if the header starts with "Bearer "
 			if (authHeader != null && authHeader.startsWith("Bearer ")) {
-				token = authHeader.substring(7);
-				username = jwtService.extractUsername(token);
+				token = authHeader.substring(7); // Extract the token by removing "Bearer "
+				username = jwtService.extractUsername(token); // Extract username from the token
 			}
 
+			// If the token is valid and no authentication is set in the context
 			if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 				UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+
+				// Validate token and set authentication
 				if (jwtService.validateToken(token, userDetails)) {
 					UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(userDetails,
 							null, userDetails.getAuthorities());
@@ -57,9 +70,13 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 					SecurityContextHolder.getContext().setAuthentication(authToken);
 				}
 			}
+
+			// Continue the filter chain
 			filterChain.doFilter(request, response);
-		}catch(Exception ex) {
-    	exceptionResolver.resolveException(request, response, null, ex);
-    }
-}
+
+		} catch (Exception ex) {
+//			exceptionResolver.resolveException(request, response, null, ex);
+			ex.getMessage();
+		}
+	}
 }

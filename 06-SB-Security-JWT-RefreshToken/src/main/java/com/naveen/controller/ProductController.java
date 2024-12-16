@@ -31,6 +31,7 @@ public class ProductController {
 
     @Autowired
     private ProductService service;
+    
     @Autowired
     private JwtService jwtService;
 

@@ -59,7 +59,7 @@ public class CustomerRestController {
 
 		} catch (Exception e) {
 			//logger
-			log.info("Exiting  loginCheck() method : ");
+			log.info("Exception occured loginCheck() method : ", e.getMessage());
 		}
 
 		return new ResponseEntity<String>("Invalid Credentials", HttpStatus.BAD_REQUEST);
